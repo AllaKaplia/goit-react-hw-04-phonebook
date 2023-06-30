@@ -1,40 +1,24 @@
-import React, { Component } from "react";
+import { useState, useEffect } from "react";
+import contactsDefault from './contactsDefault.json'; 
 import ContactList from "./ContactList";
 import FilterContacts from "./FilterContacts";
 import FormContact from "./FormContact";
 import { toast, ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
-import { Container } from './App.styled'
+import { Container } from './App.styled';
 
 
-class App extends Component {
-  state = {
-    contacts:  [
-      {id: 'id-1', name: 'Rosie Simpson', number: '459-12-56'},
-      {id: 'id-2', name: 'Hermione Kline', number: '443-89-12'},
-      {id: 'id-3', name: 'Eden Clements', number: '645-17-79'},
-      {id: 'id-4', name: 'Annie Copeland', number: '227-91-26'},
-    ],
-    filter: '',
-  }
+export default function App(){
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(window.localStorage.getItem('contacts')) ?? contactsDefault
+  });
+  const [filter, setFilter] = useState('');
 
-  componentDidMount (){
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
+  useEffect(() => {
+    window.localStorage.setItem('contacts', JSON.stringify(contacts));
+  })
 
-    if(parsedContacts){
-      this.setState({ contacts: parsedContacts });
-    }
-  }
- 
-  componentDidUpdate = (prevProps, prevState) => {
-    if(prevState.contacts !== this.state.contacts){
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  formSubmitHandle = newContact => {
-    const { contacts } = this.state;
+  const formSubmitHandle = newContact => {
   
     const existingContactByName = contacts.find(
       contact => contact.name.toLowerCase() === newContact.name.toLowerCase()
@@ -54,46 +38,34 @@ class App extends Component {
       return;
     }
   
-    this.addContact(newContact);
-  }
-  
-  
-
-  addContact = (contact) => {
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, contact],
-    }));
+    addContact(newContact);
   }
 
-  changeFilter = evt => {
-    this.setState({filter: evt.currentTarget.value});
+  const addContact = (contact) => {
+    setContacts(prevState => [...prevState, contact]);
   }
 
-  deleteContact = (contactName) => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => 
-        contact.name !== contactName)
-    }))
+  const deleteContact = (contactName) => {
+    setContacts(prevState => prevState.filter(contact => contact.name !== contactName));
   }
 
-  render() {
-    const { contacts, filter } = this.state;
-    const normalizedFilter = filter ? filter.toLowerCase() : '';
-    const visibleContacts = contacts.filter(contact =>
-      contact.name.toLowerCase().includes(normalizedFilter)
-    );
-
-    return (
-      <Container>
-        <h1>Phonebook</h1>
-        <FormContact addContact={this.formSubmitHandle}/>
-        <h2>Contacts</h2>
-        <FilterContacts value={filter} onChange={this.changeFilter} />
-        <ContactList contacts={visibleContacts} onDeleteContact={this.deleteContact} />
-        <ToastContainer theme="colored"/>
-      </Container>
-    );
+  const changeFilter = evt => {
+    setFilter(evt.currentTarget.value);
   }
+
+  const normalizedFilter = filter ? filter.toLowerCase() : '';
+  const visibleContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(normalizedFilter)
+  );
+
+  return (
+    <Container>
+      <h1>Phonebook</h1>
+      <FormContact addContact={formSubmitHandle}/>
+      <h2>Contacts</h2>
+      <FilterContacts value={filter} onChange={changeFilter} />
+      <ContactList contacts={visibleContacts} onDeleteContact={deleteContact} />
+      <ToastContainer theme="colored"/>
+    </Container>
+  );
 }
-
-export default App;
