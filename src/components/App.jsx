@@ -10,12 +10,13 @@ import { Container } from './App.styled';
 
 export default function App(){
   const [contacts, setContacts] = useState(() => {
-    return JSON.parse(window.localStorage.getItem('contacts')) ?? contactsDefault
+    return JSON.parse(window.localStorage.getItem('KEY')) ?? contactsDefault
   });
   const [filter, setFilter] = useState('');
+  const KEY = contacts;
 
   useEffect(() => {
-    window.localStorage.setItem('contacts', JSON.stringify(contacts));
+    window.localStorage.setItem('KEY', JSON.stringify(KEY));
   })
 
   const formSubmitHandle = newContact => {
